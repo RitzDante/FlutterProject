@@ -47,15 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // AppBar - верхняя панель приложения
       appBar: AppBar(
         title: Text('Flutter Learning'),
-        actions: [
-          // Кнопка настроек (можно добавить функционал позже)
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              // TODO: Добавить экран настроек
-            },
-          ),
-        ],
+        // Убираем кнопку настроек - переносим в профиль
       ),
 
       // Body - основное содержимое экрана
