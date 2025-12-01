@@ -1,85 +1,67 @@
 import 'package:flutter/material.dart';
 import 'config/app_config.dart';
-import 'screens/home_screen.dart';
-import 'screens/practice_screen.dart';
-import 'screens/profile_screen.dart';
+import 'screens/main_navigator_screen.dart';
+import 'screens/auth_screen.dart';
+import 'screens/reg_screen.dart';
+import 'services/auth_service.dart';
 
 void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppConfig.appName,
-      theme: AppConfig.lightTheme,
-      home: MainNavigationScreen(), // Теперь используем навигационный экран
-      debugShowCheckedModeBanner: false,
-    );
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _isLoggedIn = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
   }
-}
 
-/*
-MainNavigationScreen - основной экран с нижней навигацией
-StatefulWidget потому что отслеживаем текущую вкладку
-*/
-class MainNavigationScreen extends StatefulWidget {
-  @override
-  _MainNavigationScreenState createState() => _MainNavigationScreenState();
-}
-
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  // Индекс текущей выбранной вкладки
-  int _currentTabIndex = 0;
-
-  // Список всех экранов для навигации
-  final List<Widget> _screens = [
-    HomeScreen(),
-    PracticeScreen(),
-    ProfileScreen(),
-  ];
-
-  // Метод для смены вкладки
-  void _onTabTapped(int index) {
+  void _checkLoginStatus() async {
+    bool isLoggedIn = await AuthService.isLoggedIn();
     setState(() {
-      _currentTabIndex = index;
+      _isLoggedIn = isLoggedIn;
+      _isLoading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // Тело - текущий выбранный экран
-      body: _screens[_currentTabIndex],
+    return MaterialApp(
+      title: AppConfig.appName,
+      theme: AppConfig.lightTheme,
       
-      // Нижняя навигационная панель
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentTabIndex, // Текущая выбранная вкладка
-        onTap: _onTabTapped, // Обработчик нажатия
-        type: BottomNavigationBarType.fixed, // Фиксированный стиль (все иконки видны)
-        backgroundColor: Colors.white, // Белый фон как в AppBar
-        selectedItemColor: Colors.blue, // Цвет выбранной иконки
-        unselectedItemColor: Colors.grey, // Цвет невыбранных иконок
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold), // Жирный шрифт для выбранной
-        unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal), // Обычный шрифт для остальных
-        
-        // Элементы навигации
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school), // Иконка для вкладки "Учиться"
-            label: 'Учиться', // Подпись
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.code), // Иконка для вкладки "Практика"
-            label: 'Практика',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person), // Иконка для вкладки "Профиль"
-            label: 'Профиль',
-          ),
-        ],
-      ),
+      // Маршруты приложения
+      routes: {
+        '/auth': (context) => AuthScreen(),  
+        '/reg': (context) => RegScreen(),
+        '/main': (context) => MainNavigationScreen(),
+      },
+      
+      // Стартовый экран зависит от статуса авторизации
+      home: _isLoading
+          ? Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Загрузка...'),
+                  ],
+                ),
+              ),
+            )
+          : _isLoggedIn ? MainNavigationScreen() : AuthScreen(), 
+      
+      debugShowCheckedModeBanner: false,
     );
   }
 }
